@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Type-check, lint, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # `npm ci` installs exactly what package-lock.json says, so CI and a
+      # reviewer's machine run the same dependency versions.
+      - run: npm ci
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Lint (includes accessibility rules)
+        run: npm run lint
+
+      - name: Formatting
+        run: npm run format:check
+
+      - name: Tests with coverage thresholds
+        run: npm run test:coverage
+
+      # The build needs no secrets: dependencies are created lazily at request time.
+      - name: Production build
+        run: npm run build
+
+      - name: Dependency audit (fails on high or critical advisories)
+        run: npm audit --audit-level=high

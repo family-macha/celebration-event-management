@@ -1,0 +1,19 @@
+# dependencies
+node_modules
+
+# build output
+.next
+out
+coverage
+*.tsbuildinfo
+next-env.d.ts
+
+# secrets — never commit real keys
+.env
+.env.*
+!.env.example
+
+# misc
+.DS_Store
+npm-debug.log*
+.vercel
